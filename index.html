@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mi Agenda Master</title>
+    <meta name="theme-color" content="#121212">
+    <!-- Iconos de Google -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #e0e0e0;
+            --text-sec: #a0a0a0;
+            --accent: #448aff;
+            --red-sync: #ff5252;
+            --orange-fit: #ff9800;
+            --green-bio: #69f0ae;
+            --white-free: #cfd8dc;
+            --purple-deep: #7c4dff;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding-bottom: 90px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* HEADER & PROGRESO */
+        .dashboard {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-bottom: 1px solid #333;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .greeting {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+
+        .date-badge {
+            font-size: 0.8rem;
+            background: #333;
+            padding: 4px 8px;
+            border-radius: 6px;
+            color: var(--text-sec);
+        }
+
+        .progress-container {
+            background: #333;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--purple-deep));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-size: 0.75rem;
+            color: var(--text-sec);
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        /* LISTA DE HORARIOS */
+        .schedule-container {
+            padding: 15px;
+        }
+
+        .time-block {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border-left: 5px solid transparent;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s;
+        }
+
+        .block-header {
+            padding: 12px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .time-display {
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: var(--text-sec);
+        }
+
+        .block-title {
+            font-weight: bold;
+            font-size: 1rem;
+            margin-left: 10px;
+            flex-grow: 1;
+        }
+
+        .expand-icon {
+            transition: transform 0.3s;
+        }
+
+        /* CONTENIDO EXPANDIBLE (Checkboxes) */
+        .block-content {
+            background: #252525;
+            padding: 0 15px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s;
+        }
+
+        .block-content.open {
+            padding: 10px 15px 15px 15px;
+            max-height: 1000px;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 8px;
+            background: #2f2f2f;
+            border-radius: 8px;
+        }
+
+        .custom-checkbox {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--text-sec);
+            border-radius: 6px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .custom-checkbox.checked {
+            background: var(--green-bio);
+            border-color: var(--green-bio);
+        }
+
+        .custom-checkbox span {
+            display: none;
+            color: #121212;
+            font-size: 18px;
+        }
+
+        .custom-checkbox.checked span {
+            display: block;
+        }
+
+        .item-text {
+            font-size: 0.9rem;
+            flex-grow: 1;
+        }
+
+        .item-subtext {
+            display: block;
+            font-size: 0.75rem;
+            color: var(--text-sec);
+            margin-top: 2px;
+        }
+
+        /* BOTONES DE ACCIÓN (Meet/Zoom) */
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* TIPOS DE BLOQUES */
+        .type-sync {
+            border-left-color: var(--red-sync);
+        }
+
+        .type-sync .action-btn {
+            background: var(--red-sync);
+        }
+
+        .type-fit {
+            border-left-color: var(--orange-fit);
+        }
+
+        .type-google {
+            border-left-color: var(--accent);
+        }
+
+        .type-bio {
+            border-left-color: var(--green-bio);
+        }
+
+        .type-free {
+            border-left-color: var(--white-free);
+        }
+
+        /* NUTRITION & INFO MODAL */
+        .info-card {
+            background: #2c2c2c;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 5px;
+            font-size: 0.85rem;
+            color: #ddd;
+            border-left: 3px solid var(--green-bio);
+        }
+
+        /* NAVIGATION */
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #1e1e1e;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #333;
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-sec);
+            background: none;
+            border: none;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+
+        .nav-item span {
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        /* PANTALLA HÁBITOS */
+        #habitsView {
+            display: none;
+            padding: 20px;
+        }
+
+        .habit-card {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .habit-card h3 {
+            color: var(--green-bio);
+            margin-top: 0;
+        }
+
+        .habit-list li {
+            margin-bottom: 8px;
+            color: #ccc;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- DASHBOARD -->
+    <div class="dashboard">
+        <div class="header-top">
+            <div class="greeting" id="greetingText">Hola</div>
+            <div class="date-badge" id="currentDate">...</div>
+        </div>
+        <div class="progress-text" id="progressText">Nivel Diario: 0%</div>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+    </div>
+
+    <!-- VISTA PRINCIPAL: AGENDA -->
+    <div class="schedule-container" id="scheduleView">
+        <div id="scheduleList"></div>
+    </div>
+
+    <!-- VISTA SECUNDARIA: GUÍA HÁBITOS -->
+    <div id="habitsView">
+        <h2 style="margin-bottom: 20px;">Guía Maestra (PDF)</h2>
+
+        <div class="habit-card">
+            <h3>🍽️ Alimentación - Reglas de Oro</h3>
+            <ul class="habit-list">
+                <li><strong>Prioridad:</strong> Proteína en cada comida (huevo, pollo, pescado, legumbres).</li>
+                <li><strong>Verduras:</strong> Obligatorias en almuerzo y cena.</li>
+                <li><strong>Carbos:</strong> Controlados (arroz, papa, avena). Evitar pan de noche.</li>
+                <li><strong>Snacks:</strong> Solo si hay hambre real (fruta, frutos secos).</li>
+            </ul>
+        </div>
+
+        <div class="habit-card">
+            <h3>💪 Principios de Entrenamiento</h3>
+            <ul class="habit-list">
+                <li><strong>Frecuencia:</strong> Mejor hacerlo suave 5 días que matarse 1 día.</li>
+                <li><strong>Sin Dolor:</strong> Hombros, codos y cuello relajados.</li>
+                <li><strong>Técnica:</strong> Movimientos controlados, sin tirones.</li>
+                <li><strong>Adaptación:</strong> Usar antebrazos o straps para no forzar agarre.</li>
+            </ul>
+        </div>
+
+        <div class="habit-card">
+            <h3>😴 Sueño (Meta: 00:30)</h3>
+            <ul class="habit-list">
+                <li>Adelantar hora de dormir 15 min por semana.</li>
+                <li>El sueño potencia la pérdida de grasa.</li>
+                <li>Apagar pantallas fuertes 30 min antes.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- NAVEGACIÓN -->
+    <nav class="nav-bar">
+        <button class="nav-item active" onclick="switchView('agenda')" id="btnAgenda">
+            <span class="material-icons-round">calendar_today</span>
+            Agenda
+        </button>
+        <button class="nav-item" onclick="switchView('habits')" id="btnHabits">
+            <span class="material-icons-round">restaurant</span>
+            Hábitos
+        </button>
+    </nav>
+
+    <script>
+        // --- CONFIGURACIÓN Y DATOS ---
+
+        const LINKS = {
+            meet: "https://meet.google.com/jsb-etcx-bys",
+            zoom: "https://desafiolatam.zoom.us/j/89933482898?pwd=l48t2inchUpYGaD8EI3eEvHUFEalYE.1"
+        };
+
+        const WORKOUTS = {
+            cardioCore: [
+                { txt: "Calentamiento: Movilidad Hombros", sub: "Elevación y descenso suave" },
+                { txt: "Pedalier: 300 vueltas suaves", sub: "Calentamiento" },
+                { txt: "Pedalier: Intervalos (20 min)", sub: "100 rápidas / 100 lentas" },
+                { txt: "Core: Inclinaciones tronco", sub: "3 series x 12 reps" },
+                { txt: "Core: Giros tronco c/banda", sub: "2 x 10 por lado (controlado)" }
+            ],
+            cardioStrength: [
+                { txt: "Calentamiento: Rotaciones tronco", sub: "Suaves" },
+                { txt: "Pedalier: Ritmo constante (25 min)", sub: "Resistencia media" },
+                { txt: "Fuerza: Press Pecho Banda", sub: "3 x 12 (Antebrazo/Strap)" },
+                { txt: "Fuerza: Remo Sentado Banda", sub: "3 x 12 (Retraer escápulas)" },
+                { txt: "Fuerza: Apertura Posterior", sub: "2 x 15 (Pull apart)" }
+            ],
+            recovery: [
+                { txt: "Movilidad articular general", sub: "10 min" },
+                { txt: "Estiramientos suaves", sub: "Sin dolor" },
+                { txt: "Respiración diafragmática", sub: "5 min" }
+            ]
+        };
+
+        // Estructura Base de la Semana
+        // Tipos: sync, google, fit, bio, free
+        const weekData = {
+            1: [ // Lunes
+                { t: "08:30", type: "bio", title: "Rutina Mañana", sub: "Desayuno Proteico + Meds", check: true },
+                { t: "09:00", type: "sync", title: "Product Owner", sub: "Clase en Vivo", link: LINKS.meet },
+                { t: "14:00", type: "bio", title: "Almuerzo", sub: "Proteína + Carbos + Verdura", check: true },
+                { t: "15:00", type: "free", title: "Tiempo Flexible", sub: "Trámites / Siesta / Ocio" },
+                { t: "17:30", type: "fit", title: "Entrenamiento (Cardio + Core)", workout: "cardioCore" },
+                { t: "19:00", type: "sync", title: "Emprendimiento Digital", sub: "Clase Online", link: LINKS.zoom },
+                { t: "21:00", type: "bio", title: "Cena", sub: "Liviana: Proteína + Verduras", check: true },
+                { t: "22:00", type: "google", title: "Bloque Google", sub: "Gestión de Proyectos + Marketing", check: true },
+                { t: "01:00", type: "bio", title: "Cierre de Día", sub: "Meta sueño: Ir bajando horario", check: true }
+            ],
+            2: [ // Martes
+                { t: "10:00", type: "bio", title: "Despertar + Desayuno", sub: "Proteico", check: true },
+                { t: "11:00", type: "google", title: "Google: Teoría", sub: "Videos y Lecturas", check: true },
+                { t: "14:00", type: "bio", title: "Almuerzo", sub: "Completo", check: true },
+                { t: "17:30", type: "fit", title: "Entrenamiento (Fuerza)", workout: "cardioStrength" },
+                { t: "19:00", type: "free", title: "Revisión Pendientes", sub: "Admin / Orden" },
+                { t: "21:00", type: "google", title: "DEEP WORK: Práctica", sub: "Desafíos Marketing (2-3 hrs)", check: true }
+            ],
+            3: [ // Miércoles (Recovery)
+                { t: "08:30", type: "bio", title: "Rutina Mañana", sub: "Desayuno", check: true },
+                { t: "09:00", type: "sync", title: "Product Owner", sub: "Clase en Vivo", link: LINKS.meet },
+                { t: "14:00", type: "bio", title: "Almuerzo", sub: "", check: true },
+                { t: "17:30", type: "fit", title: "Descanso Activo", workout: "recovery" },
+                { t: "19:00", type: "sync", title: "Emprendimiento Digital", sub: "Clase Online", link: LINKS.zoom },
+                { t: "22:00", type: "google", title: "Bloque Google", sub: "Avance Módulos", check: true }
+            ],
+            6: [ // Sábado
+                { t: "10:00", type: "google", title: "Repaso Semanal / Catch-up", sub: "Solo si hay atrasos", check: true },
+                { t: "13:00", type: "free", title: "FIN DE SEMANA", sub: "Novia / Descanso Total / Sin Culpa" }
+            ]
+        };
+        // Copias de días repetidos
+        weekData[4] = JSON.parse(JSON.stringify(weekData[2])); // Jueves = Martes
+        weekData[4][3].workout = "cardioCore"; // Jueves es CardioCore
+        weekData[4][5].sub = "Desafíos Gestión Proyectos"; // Deep work Jueves
+
+        weekData[5] = JSON.parse(JSON.stringify(weekData[1])); // Viernes = Lunes
+        weekData[5][4].workout = "cardioStrength"; // Viernes Fuerza
+        weekData[5].pop(); // Quitar bloque noche viernes
+        weekData[5].push({ t: "20:00", type: "free", title: "Inicio Finde", sub: "Relax" });
+
+        weekData[0] = weekData[6]; // Domingo = Sábado
+
+        // --- LÓGICA DE PROGRAMACIÓN ---
+
+        const today = new Date();
+        const dayIndex = today.getDay(); // 0 Dom - 6 Sab
+        // Formato fecha para localStorage (YYYY-MM-DD) para resetear checkboxes diarios
+        const dateKey = today.toISOString().split('T')[0];
+
+        function init() {
+            // Fecha Header
+            const options = { weekday: 'long', day: 'numeric', month: 'short' };
+            document.getElementById('currentDate').innerText = today.toLocaleDateString('es-ES', options);
+
+            // Saludo según hora
+            const hour = today.getHours();
+            let greet = "¡Buenos días!";
+            if (hour >= 12) greet = "¡Buenas tardes!";
+            if (hour >= 20) greet = "¡Buenas noches!";
+            document.getElementById('greetingText').innerText = greet;
+
+            renderSchedule();
+            updateProgress();
+        }
+
+        function renderSchedule() {
+            const list = document.getElementById('scheduleList');
+            const data = weekData[dayIndex] || weekData[1]; // Fallback Lunes
+
+            list.innerHTML = "";
+
+            data.forEach((item, index) => {
+                const uniqueId = `chk_${dateKey}_${index}`;
+                const isChecked = localStorage.getItem(uniqueId) === 'true';
+
+                const div = document.createElement('div');
+                div.className = `time-block type-${item.type}`;
+
+                // Header del bloque
+                let html = `
+                    <div class="block-header" onclick="toggleBlock(this)">
+                        <span class="time-display">${item.t}</span>
+                        <div class="block-title">
+                            ${item.title}
+                            <div style="font-size:0.8rem; font-weight:normal; opacity:0.8">${item.sub || ''}</div>
+                        </div>
+                        <span class="material-icons-round expand-icon">expand_more</span>
+                    </div>
+                    <div class="block-content">
+                `;
+
+                // Contenido Interno (Checkboxes o Botones)
+
+                // 1. Si es ejercicio
+                if (item.workout) {
+                    const routine = WORKOUTS[item.workout];
+                    routine.forEach((ex, i) => {
+                        const exId = `${uniqueId}_ex_${i}`;
+                        const exChecked = localStorage.getItem(exId) === 'true';
+                        html += createCheckbox(exId, ex.txt, ex.sub, exChecked);
+                    });
+                }
+                // 2. Si es check simple (Bio/Google)
+                else if (item.check) {
+                    html += createCheckbox(uniqueId, "Completado", "Marcar al finalizar", isChecked);
+                }
+                // 3. Info nutricional en comidas
+                if (item.type === 'bio' && (item.title.includes("Almuerzo") || item.title.includes("Cena"))) {
+                    html += `<div class="info-card"><span class="material-icons-round" style="font-size:14px; vertical-align:middle">restaurant_menu</span> Recuerda: Proteína + Verduras</div>`;
+                }
+
+                // 4. Botones de Links
+                if (item.link) {
+                    let platform = item.link.includes('zoom') ? 'Zoom' : 'Meet';
+                    let icon = item.link.includes('zoom') ? 'videocam' : 'video_camera_front';
+                    html += `<a href="${item.link}" target="_blank" class="action-btn"><span class="material-icons-round">${icon}</span> Entrar a ${platform}</a>`;
+                }
+
+                html += `</div>`; // Cierre block-content
+                div.innerHTML = html;
+                list.appendChild(div);
+
+                // Auto-abrir bloque actual (simple logic)
+                const nowH = new Date().getHours();
+                const itemH = parseInt(item.t.split(':')[0]);
+                if (nowH === itemH || (nowH > itemH && nowH < itemH + 2)) {
+                    // Pequeño delay para animación
+                    setTimeout(() => toggleBlock(div.querySelector('.block-header')), 100);
+                }
+            });
+        }
+
+        function createCheckbox(id, text, sub, checked) {
+            return `
+                <div class="checklist-item" onclick="toggleCheck('${id}')">
+                    <div class="custom-checkbox ${checked ? 'checked' : ''}" id="box_${id}">
+                        <span class="material-icons-round">check</span>
+                    </div>
+                    <div>
+                        <div class="item-text">${text}</div>
+                        <span class="item-subtext">${sub}</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function toggleBlock(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('.expand-icon');
+
+            if (content.classList.contains('open')) {
+                content.classList.remove('open');
+                icon.style.transform = 'rotate(0deg)';
+            } else {
+                content.classList.add('open');
+                icon.style.transform = 'rotate(180deg)';
+            }
+        }
+
+        function toggleCheck(id) {
+            const box = document.getElementById(`box_${id}`);
+            const isChecked = box.classList.contains('checked');
+
+            if (isChecked) {
+                box.classList.remove('checked');
+                localStorage.setItem(id, 'false');
+            } else {
+                box.classList.add('checked');
+                localStorage.setItem(id, 'true');
+                // Vibración de éxito (si soporta)
+                if (navigator.vibrate) navigator.vibrate(50);
+            }
+            updateProgress();
+        }
+
+        function updateProgress() {
+            // Contar todos los checkboxes renderizados en el DOM
+            const allChecks = document.querySelectorAll('.custom-checkbox');
+            const checkedChecks = document.querySelectorAll('.custom-checkbox.checked');
+
+            if (allChecks.length === 0) return;
+
+            const percent = Math.round((checkedChecks.length / allChecks.length) * 100);
+
+            document.getElementById('progressBar').style.width = `${percent}%`;
+            document.getElementById('progressText').innerText = percent === 100 ? "¡DÍA COMPLETADO! 🎉" : `Nivel Diario: ${percent}%`;
+        }
+
+        function switchView(viewName) {
+            const agenda = document.getElementById('scheduleView');
+            const habits = document.getElementById('habitsView');
+            const btnAgenda = document.getElementById('btnAgenda');
+            const btnHabits = document.getElementById('btnHabits');
+
+            if (viewName === 'agenda') {
+                agenda.style.display = 'block';
+                habits.style.display = 'none';
+                btnAgenda.classList.add('active');
+                btnHabits.classList.remove('active');
+            } else {
+                agenda.style.display = 'none';
+                habits.style.display = 'block';
+                btnAgenda.classList.remove('active');
+                btnHabits.classList.add('active');
+            }
+        }
+
+        // Iniciar
+        init();
+
+    </script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registrado', reg))
+                    .catch(err => console.log('Error SW:', err));
+            });
+        }
+    </script>
+</body>
+
+</html>
