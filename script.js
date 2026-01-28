@@ -1,0 +1,931 @@
+﻿// --- CONFIGURACIÓN Y DATOS ---
+
+const LINKS = {
+    meet: "https://meet.google.com/jsb-etcx-bys",
+    zoom: "https://desafiolatam.zoom.us/j/89933482898?pwd=l48t2inchUpYGaD8EI3eEvHUFEalYE.1"
+};
+
+const WORKOUTS = {
+    cardioCore: [
+        { txt: "Calentamiento: Movilidad Hombros", sub: "Elevación y descenso suave" },
+        { txt: "Pedalier: 300 vueltas suaves", sub: "Calentamiento" },
+        { txt: "Pedalier: Intervalos (20 min)", sub: "100 rápidas / 100 lentas" },
+        { txt: "Core: Inclinaciones tronco", sub: "3 series x 12 reps" },
+        { txt: "Core: Giros tronco c/banda", sub: "2 x 10 por lado (controlado)" }
+    ],
+    cardioStrength: [
+        { txt: "Calentamiento: Rotaciones tronco", sub: "Suaves" },
+        { txt: "Pedalier: Ritmo constante (25 min)", sub: "Resistencia media" },
+        { txt: "Fuerza: Press Pecho Banda", sub: "3 x 12 (Antebrazo/Strap)" },
+        { txt: "Fuerza: Remo Sentado Banda", sub: "3 x 12 (Retraer escápulas)" },
+        { txt: "Fuerza: Apertura Posterior", sub: "2 x 15 (Pull apart)" }
+    ],
+    recovery: [
+        { txt: "Movilidad articular general", sub: "10 min" },
+        { txt: "Estiramientos suaves", sub: "Sin dolor" },
+        { txt: "Respiración diafragmática", sub: "5 min" }
+    ]
+};
+
+// Estructura Base de la Semana
+// Tipos: sync, google, fit, bio, free
+// Función para calcular alimento rotativo de la Once
+function getOnceFood() {
+    const foods = ['Huevos', 'Atún', 'Tomate', 'Otro'];
+    const baseDate = new Date('2026-01-01'); // Fecha base
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    baseDate.setHours(0, 0, 0, 0);
+
+    const daysDiff = Math.floor((today - baseDate) / (1000 * 60 * 60 * 24));
+    const foodIndex = daysDiff % 4;
+
+    return foods[foodIndex];
+}
+
+const weekData = {
+    1: [ // Lunes
+        { t: "08:30", type: "bio", title: "Rutina Mañana", sub: "Desayuno Proteico + Meds", check: true },
+        { t: "09:00", type: "sync", title: "Product Owner", sub: "Clase en Vivo", link: LINKS.meet },
+        { t: "14:00", type: "bio", title: "Almuerzo", sub: "Proteína + Carbos + Verdura", check: true },
+        { t: "15:00", type: "free", title: "Tiempo Flexible", sub: "Trámites / Siesta / Ocio" },
+        { t: "17:30", type: "fit", title: "Entrenamiento (Cardio + Core)", workout: "cardioCore" },
+        { t: "19:00", type: "sync", title: "Emprendimiento Digital", sub: "Clase Online", link: LINKS.zoom },
+        { t: "20:30", type: "bio", title: "Once", sub: getOnceFood(), check: true },
+        { t: "21:00", type: "bio", title: "Cena", sub: "Liviana: Proteína + Verduras", check: true },
+        { t: "22:00", type: "google", title: "Bloque Google", sub: "Gestión de Proyectos + Marketing", check: true },
+        { t: "01:00", type: "bio", title: "Cierre de Día", sub: "Meta sueño: Ir bajando horario", check: true }
+    ],
+    2: [ // Martes
+        { t: "10:00", type: "bio", title: "Despertar + Desayuno", sub: "Proteico", check: true },
+        { t: "11:00", type: "google", title: "Google: Teoría", sub: "Videos y Lecturas", check: true },
+        { t: "14:00", type: "bio", title: "Almuerzo", sub: "Completo", check: true },
+        { t: "17:30", type: "fit", title: "Entrenamiento (Fuerza)", workout: "cardioStrength" },
+        { t: "19:00", type: "free", title: "Revisión Pendientes", sub: "Admin / Orden" },
+        { t: "20:30", type: "bio", title: "Once", sub: getOnceFood(), check: true },
+        { t: "21:00", type: "google", title: "DEEP WORK: Práctica", sub: "Desafíos Marketing (2-3 hrs)", check: true }
+    ],
+    3: [ // Miércoles (Recovery)
+        { t: "08:30", type: "bio", title: "Rutina Mañana", sub: "Desayuno", check: true },
+        { t: "09:00", type: "sync", title: "Product Owner", sub: "Clase en Vivo", link: LINKS.meet },
+        { t: "14:00", type: "bio", title: "Almuerzo", sub: "", check: true },
+        { t: "17:30", type: "fit", title: "Descanso Activo", workout: "recovery" },
+        { t: "19:00", type: "sync", title: "Emprendimiento Digital", sub: "Clase Online", link: LINKS.zoom },
+        { t: "20:30", type: "bio", title: "Once", sub: getOnceFood(), check: true },
+        { t: "22:00", type: "google", title: "Bloque Google", sub: "Avance Módulos", check: true }
+    ],
+    6: [ // Sábado
+        { t: "10:00", type: "google", title: "Repaso Semanal / Catch-up", sub: "Solo si hay atrasos", check: true },
+        { t: "13:00", type: "free", title: "FIN DE SEMANA", sub: "Novia / Descanso Total / Sin Culpa" },
+        { t: "20:30", type: "bio", title: "Once", sub: getOnceFood(), check: true }
+    ]
+};
+// Copias de días repetidos
+weekData[4] = JSON.parse(JSON.stringify(weekData[2])); // Jueves = Martes
+weekData[4][3].workout = "cardioCore"; // Jueves es CardioCore
+weekData[4][5].sub = "Desafíos Gestión Proyectos"; // Deep work Jueves
+// Once ya está copiada (índice 6)
+
+weekData[5] = JSON.parse(JSON.stringify(weekData[1])); // Viernes = Lunes
+weekData[5][4].workout = "cardioStrength"; // Viernes Fuerza
+// Quitar bloques después de Once (índice 7 en adelante)
+weekData[5] = weekData[5].slice(0, 8); // Mantiene hasta Once inclusive
+weekData[5].push({ t: "21:00", type: "free", title: "Inicio Finde", sub: "Relax" });
+
+// FIX: Domingo debe copiar Sábado correctamente
+weekData[0] = JSON.parse(JSON.stringify(weekData[6])); // Domingo = Sábado
+
+// --- LÓGICA DE PROGRAMACIÓN ---
+
+const today = new Date();
+const dayIndex = today.getDay(); // 0 Dom - 6 Sab
+// Formato fecha para localStorage (YYYY-MM-DD) para resetear checkboxes diarios
+const dateKey = today.toISOString().split('T')[0];
+
+// Limpieza automática de localStorage antiguo (>30 días)
+function cleanOldCheckboxes() {
+    const keys = Object.keys(localStorage);
+    const todayDate = new Date();
+
+    keys.forEach(key => {
+        if (key.startsWith('chk_')) {
+            try {
+                const dateStr = key.split('_')[1];
+                const itemDate = new Date(dateStr);
+                const daysDiff = (todayDate - itemDate) / (1000 * 60 * 60 * 24);
+
+                if (daysDiff > 30) {
+                    localStorage.removeItem(key);
+                }
+            } catch (e) {
+                // Si hay error parseando fecha, ignorar esta clave
+            }
+        }
+    });
+}
+
+function init() {
+    // Limpiar datos antiguos del localStorage
+    cleanOldCheckboxes();
+
+    // Fecha Header
+    const options = { weekday: 'long', day: 'numeric', month: 'short' };
+    document.getElementById('currentDate').innerText = today.toLocaleDateString('es-ES', options);
+
+    // Saludo según hora
+    const hour = today.getHours();
+    let greet = "¡Buenos días!";
+    if (hour >= 12) greet = "¡Buenas tardes!";
+    if (hour >= 20) greet = "¡Buenas noches!";
+    document.getElementById('greetingText').innerText = greet;
+
+    renderSchedule();
+    updateProgress();
+}
+
+function renderSchedule() {
+    const list = document.getElementById('scheduleList');
+    const data = weekData[dayIndex] || weekData[1]; // Fallback Lunes
+
+    list.innerHTML = "";
+
+    data.forEach((item, index) => {
+        const uniqueId = `chk_${dateKey}_${index}`;
+        const isChecked = localStorage.getItem(uniqueId) === 'true';
+
+        const div = document.createElement('div');
+        div.className = `time-block type-${item.type}`;
+
+        // Header del bloque
+        let html = `
+                    <div class="block-header" onclick="toggleBlock(this)">
+                        <span class="time-display">${item.t}</span>
+                        <div class="block-title">
+                            ${item.title}
+                            <div style="font-size:0.8rem; font-weight:normal; opacity:0.8">${item.sub || ''}</div>
+                        </div>
+                        <span class="material-icons-round expand-icon">expand_more</span>
+                    </div>
+                    <div class="block-content">
+                `;
+
+        // Contenido Interno (Checkboxes o Botones)
+
+        // 1. Si es ejercicio
+        if (item.workout) {
+            const routine = WORKOUTS[item.workout];
+            routine.forEach((ex, i) => {
+                const exId = `${uniqueId}_ex_${i}`;
+                const exChecked = localStorage.getItem(exId) === 'true';
+                html += createCheckbox(exId, ex.txt, ex.sub, exChecked);
+            });
+        }
+        // 2. Si es check simple (Bio/Google)
+        else if (item.check) {
+            html += createCheckbox(uniqueId, "Completado", "Marcar al finalizar", isChecked);
+        }
+        // 3. Info nutricional en comidas
+        if (item.type === 'bio' && (item.title.includes("Almuerzo") || item.title.includes("Cena"))) {
+            html += `<div class="info-card"><span class="material-icons-round" style="font-size:14px; vertical-align:middle">restaurant_menu</span> Recuerda: Proteína + Verduras</div>`;
+        }
+
+        // 4. Botones de Links
+        if (item.link) {
+            let platform = item.link.includes('zoom') ? 'Zoom' : 'Meet';
+            let icon = item.link.includes('zoom') ? 'videocam' : 'video_camera_front';
+            html += `<a href="${item.link}" target="_blank" class="action-btn"><span class="material-icons-round">${icon}</span> Entrar a ${platform}</a>`;
+        }
+
+        html += `</div>`; // Cierre block-content
+        div.innerHTML = html;
+        list.appendChild(div);
+
+        // Auto-abrir bloque actual (lógica mejorada)
+        const now = new Date();
+        const nowMinutes = now.getHours() * 60 + now.getMinutes();
+        const [itemH, itemM] = item.t.split(':').map(Number);
+        const itemMinutes = itemH * 60 + itemM;
+
+        // Abrir si estamos dentro de 2 horas del bloque
+        if (nowMinutes >= itemMinutes && nowMinutes < itemMinutes + 120) {
+            // Pequeño delay para animación
+            setTimeout(() => toggleBlock(div.querySelector('.block-header')), 100);
+        }
+    });
+}
+
+function createCheckbox(id, text, sub, checked) {
+    return `
+                <div class="checklist-item" onclick="toggleCheck('${id}')">
+                    <div class="custom-checkbox ${checked ? 'checked' : ''}" id="box_${id}">
+                        <span class="material-icons-round">check</span>
+                    </div>
+                    <div>
+                        <div class="item-text">${text}</div>
+                        <span class="item-subtext">${sub}</span>
+                    </div>
+                </div>
+            `;
+}
+
+function toggleBlock(header) {
+    const content = header.nextElementSibling;
+    const icon = header.querySelector('.expand-icon');
+
+    if (content.classList.contains('open')) {
+        content.classList.remove('open');
+        icon.style.transform = 'rotate(0deg)';
+    } else {
+        content.classList.add('open');
+        icon.style.transform = 'rotate(180deg)';
+    }
+}
+
+function toggleCheck(id) {
+    const box = document.getElementById(`box_${id}`);
+    const isChecked = box.classList.contains('checked');
+
+    if (isChecked) {
+        box.classList.remove('checked');
+        localStorage.setItem(id, 'false');
+    } else {
+        box.classList.add('checked');
+        localStorage.setItem(id, 'true');
+        // Vibración de éxito (si soporta)
+        if (navigator.vibrate) navigator.vibrate(50);
+    }
+    updateProgress();
+}
+
+function updateProgress() {
+    // Contar todos los checkboxes renderizados en el DOM
+    const allChecks = document.querySelectorAll('.custom-checkbox');
+    const checkedChecks = document.querySelectorAll('.custom-checkbox.checked');
+
+    if (allChecks.length === 0) return;
+
+    const percent = Math.round((checkedChecks.length / allChecks.length) * 100);
+
+    document.getElementById('progressBar').style.width = `${percent}%`;
+    document.getElementById('progressText').innerText = percent === 100 ? "¡DÍA COMPLETADO! 🎉" : `Nivel Diario: ${percent}%`;
+}
+
+// --- ESTADÍSTICAS SEMANALES ---
+
+// Calcular progreso de los últimos 7 días
+function calculateWeeklyStats() {
+    const stats = {
+        dailyProgress: [], // [{day: 'Lun', date: '2026-01-27', percent: 85}]
+        streak: 0,
+        topActivities: [],
+        bottomActivities: []
+    };
+
+    const today = new Date();
+    const daysOfWeek = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+
+    // Calcular últimos 7 días
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toISOString().split('T')[0];
+        const dayName = daysOfWeek[date.getDay()];
+
+        // Contar checkboxes de ese día
+        const keys = Object.keys(localStorage).filter(k => k.startsWith(`chk_${dateKey}_`));
+        const checked = keys.filter(k => localStorage.getItem(k) === 'true').length;
+        const percent = keys.length > 0 ? Math.round((checked / keys.length) * 100) : 0;
+
+        stats.dailyProgress.push({
+            day: dayName,
+            date: dateKey,
+            percent: percent
+        });
+    }
+
+    // Calcular racha (días consecutivos al 100%)
+    let streak = 0;
+    for (let i = stats.dailyProgress.length - 1; i >= 0; i--) {
+        if (stats.dailyProgress[i].percent === 100) {
+            streak++;
+        } else {
+            break;
+        }
+    }
+    stats.streak = streak;
+
+    // Analizar actividades más/menos cumplidas (últimos 7 días)
+    const activityStats = {};
+
+    for (let i = 6; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        const dateKey = date.toISOString().split('T')[0];
+
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith(`chk_${dateKey}_`) && !key.includes('_ex_')) {
+                const index = key.split('_')[2];
+                const dayData = weekData[date.getDay()] || [];
+                const item = dayData[parseInt(index)];
+
+                if (item && item.title) {
+                    if (!activityStats[item.title]) {
+                        activityStats[item.title] = { total: 0, completed: 0 };
+                    }
+                    activityStats[item.title].total++;
+                    if (localStorage.getItem(key) === 'true') {
+                        activityStats[item.title].completed++;
+                    }
+                }
+            }
+        });
+    }
+
+    // Ordenar actividades por porcentaje de completitud
+    const sorted = Object.entries(activityStats)
+        .map(([name, data]) => ({
+            name,
+            percent: Math.round((data.completed / data.total) * 100),
+            completed: data.completed,
+            total: data.total
+        }))
+        .filter(act => act.total >= 2) // Solo actividades con al menos 2 ocurrencias
+        .sort((a, b) => b.percent - a.percent);
+
+    stats.topActivities = sorted.slice(0, 3);
+    stats.bottomActivities = sorted.slice(-3).reverse();
+
+    return stats;
+}
+
+// Renderizar vista de estadísticas
+function renderStats() {
+    const stats = calculateWeeklyStats();
+
+    // Progreso semanal
+    const weeklyHTML = stats.dailyProgress.map(day => `
+        <div class="day-progress">
+            <div class="day-label">${day.day}</div>
+            <div class="day-bar-container">
+                <div class="day-bar-fill" style="width: ${day.percent}%">
+                    ${day.percent > 15 ? `<span class="day-percent">${day.percent}%</span>` : ''}
+                </div>
+            </div>
+            ${day.percent <= 15 ? `<div class="day-percent">${day.percent}%</div>` : ''}
+        </div>
+    `).join('');
+    document.getElementById('weeklyProgress').innerHTML = weeklyHTML;
+
+    // Racha
+    document.getElementById('currentStreak').innerHTML = `
+        <div class="streak-display">
+            <div class="streak-number">${stats.streak}</div>
+            <div class="streak-label">día${stats.streak !== 1 ? 's' : ''} al 100%</div>
+        </div>
+    `;
+
+    // Top actividades
+    const topHTML = stats.topActivities.length > 0
+        ? stats.topActivities.map(act => `
+            <div class="activity-item">
+                <div class="activity-name">${act.name}</div>
+                <div class="activity-badge badge-success">${act.percent}%</div>
+            </div>
+        `).join('')
+        : '<div style="text-align:center; color: var(--text-sec); padding: 20px;">Sin datos suficientes aún.<br>Completa más días para ver estadísticas.</div>';
+    document.getElementById('topActivities').innerHTML = topHTML;
+
+    // Bottom actividades
+    const bottomHTML = stats.bottomActivities.length > 0
+        ? stats.bottomActivities.map(act => `
+            <div class="activity-item">
+                <div class="activity-name">${act.name}</div>
+                <div class="activity-badge badge-warning">${act.percent}%</div>
+            </div>
+        `).join('')
+        : '<div style="text-align:center; color: var(--text-sec); padding: 20px;">Sin datos suficientes aún.<br>Completa más días para ver estadísticas.</div>';
+    document.getElementById('bottomActivities').innerHTML = bottomHTML;
+}
+
+// --- TIMER SYSTEM ---
+
+let timerState = {
+    active: false,
+    paused: false,
+    remaining: 0,
+    total: 0,
+    startTime: null,
+    intervalId: null,
+    mode: 'single', // 'single' o 'intervals'
+    intervalMode: false,
+    intervals: [],
+    currentInterval: 0,
+    totalCycles: 1,
+    currentCycle: 0,
+    notifiedHalf: false,
+    notifiedTwoMin: false
+};
+
+const defaultPresets = [
+    { name: "Cardio Pedalier", duration: 1200 }, // 20 min
+    { name: "Core", duration: 900 },             // 15 min
+    { name: "Calentamiento", duration: 300 },    // 5 min
+    { name: "Descanso", duration: 120 }          // 2 min
+];
+
+let timerPresets = [];
+let timerIntervals = [];
+
+// Cargar presets
+function loadTimerPresets() {
+    const saved = localStorage.getItem('timer_presets');
+    timerPresets = saved ? JSON.parse(saved) : defaultPresets;
+    renderPresets();
+}
+
+// Renderizar presets
+function renderPresets() {
+    const container = document.getElementById('presetButtons');
+    if (!container) return;
+
+    container.style.display = 'grid';
+    container.innerHTML = timerPresets.map((preset, index) => {
+        const minutes = Math.floor(preset.duration / 60);
+        const seconds = preset.duration % 60;
+        const timeText = seconds > 0 ? `${minutes}:${seconds.toString().padStart(2, '0')}` : `${minutes} min`;
+
+        return `
+            <button class="preset-btn" onclick="loadPreset(${index})">
+                <div class="preset-name">${preset.name}</div>
+                <div class="preset-time">${timeText}</div>
+            </button>
+        `;
+    }).join('');
+}
+
+// Cargar preset
+function loadPreset(index) {
+    const preset = timerPresets[index];
+    const minutes = Math.floor(preset.duration / 60);
+    const seconds = preset.duration % 60;
+
+    document.getElementById('timerMinutes').value = minutes;
+    document.getElementById('timerSeconds').value = seconds;
+
+    timerState.total = preset.duration;
+    timerState.remaining = preset.duration;
+    updateTimerDisplay();
+}
+
+// Iniciar timer
+function startTimer() {
+    if (timerState.active && !timerState.paused) return;
+
+    if (timerState.paused) {
+        // Reanudar
+        timerState.paused = false;
+        timerState.active = true;
+        timerState.startTime = Date.now() - ((timerState.total - timerState.remaining) * 1000);
+    } else {
+        // Nuevo timer
+        const minutes = parseInt(document.getElementById('timerMinutes').value) || 0;
+        const seconds = parseInt(document.getElementById('timerSeconds').value) || 0;
+        const totalSeconds = minutes * 60 + seconds;
+
+        if (totalSeconds === 0) {
+            alert('Por favor, configura un tiempo mayor a 0');
+            return;
+        }
+
+        timerState.remaining = totalSeconds;
+        timerState.total = totalSeconds;
+        timerState.startTime = Date.now();
+        timerState.active = true;
+        timerState.notifiedHalf = false;
+        timerState.notifiedTwoMin = false;
+    }
+
+    timerState.intervalId = setInterval(() => {
+        updateTimerTick();
+    }, 100);
+
+    updateTimerButtons();
+    updateTimerDisplay();
+}
+
+// Pausar timer
+function pauseTimer() {
+    timerState.paused = true;
+    timerState.active = false;
+    clearInterval(timerState.intervalId);
+    updateTimerButtons();
+}
+
+// Reset timer
+function resetTimer() {
+    timerState.active = false;
+    timerState.paused = false;
+    timerState.remaining = timerState.total;
+    timerState.notifiedHalf = false;
+    timerState.notifiedTwoMin = false;
+    clearInterval(timerState.intervalId);
+    updateTimerDisplay();
+    updateTimerButtons();
+}
+
+// Actualizar timer cada tick
+function updateTimerTick() {
+    const elapsed = (Date.now() - timerState.startTime) / 1000;
+    timerState.remaining = Math.max(0, timerState.total - elapsed);
+
+    updateTimerDisplay();
+    checkTimerNotifications();
+
+    if (timerState.remaining <= 0) {
+        onTimerComplete();
+    }
+}
+
+// Actualizar display del timer
+function updateTimerDisplay() {
+    const minutes = Math.floor(timerState.remaining / 60);
+    const seconds = Math.floor(timerState.remaining % 60);
+    const timeText = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+    const display = document.getElementById('timeDisplay');
+    if (display) {
+        display.textContent = timeText;
+    }
+
+    // Actualizar barra circular
+    const progress = timerState.total > 0
+        ? (timerState.remaining / timerState.total) * 100
+        : 100;
+    updateProgressRing(progress);
+}
+
+// Actualizar anillo SVG de progreso
+function updateProgressRing(percent) {
+    const circle = document.querySelector('.progress-ring-circle');
+    if (!circle) return;
+
+    const radius = 130;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (percent / 100) * circumference;
+
+    circle.style.strokeDashoffset = offset;
+}
+
+// Actualizar botones
+function updateTimerButtons() {
+    const btnPlay = document.getElementById('btnPlay');
+    const btnPause = document.getElementById('btnPause');
+    const btnReset = document.getElementById('btnReset');
+
+    if (timerState.active && !timerState.paused) {
+        btnPlay.disabled = true;
+        btnPause.disabled = false;
+    } else {
+        btnPlay.disabled = false;
+        btnPause.disabled = true;
+    }
+}
+
+// Verificar notificaciones
+function checkTimerNotifications() {
+    const remaining = timerState.remaining;
+    const half = timerState.total / 2;
+
+    const notifyHalf = document.getElementById('notifyHalfway')?.checked;
+    const notifyTwo = document.getElementById('notifyTwoMin')?.checked;
+
+    // Mitad del tiempo
+    if (notifyHalf && !timerState.notifiedHalf && remaining <= half && remaining > half - 1) {
+        showNotification('⏱️ Timer', '¡Mitad del tiempo!');
+        timerState.notifiedHalf = true;
+    }
+
+    // 2 minutos antes
+    if (notifyTwo && !timerState.notifiedTwoMin && remaining <= 120 && remaining > 119) {
+        showNotification('⏱️ Timer', 'Quedan 2 minutos');
+        timerState.notifiedTwoMin = true;
+    }
+}
+
+// Timer completado
+function onTimerComplete() {
+    clearInterval(timerState.intervalId);
+    timerState.active = false;
+    timerState.remaining = 0;
+
+    // Si estamos en modo intervalos, avanzar al siguiente
+    if (timerState.intervalMode && intervalsList.length > 0) {
+        timerState.currentInterval++;
+
+        // Si terminamos todos los intervalos de este ciclo
+        if (timerState.currentInterval >= intervalsList.length) {
+            timerState.currentInterval = 0;
+            timerState.currentCycle++;
+
+            // Si terminamos todos los ciclos
+            if (timerState.currentCycle >= timerState.totalCycles) {
+                const notifyFinal = document.getElementById('notifyFinal')?.checked;
+                if (notifyFinal) {
+                    showNotification('🎉 Intervalos Completados', `¡${timerState.totalCycles} ciclo(s) terminado(s)!`, true);
+                }
+
+                if (navigator.vibrate) {
+                    navigator.vibrate([200, 100, 200, 100, 200]);
+                }
+
+                timerState.intervalMode = false;
+                updateTimerDisplay();
+                updateTimerButtons();
+                updateIntervalStatus('Intervalos completados ✓');
+                return;
+            }
+        }
+
+        // Auto-avanzar al siguiente intervalo
+        const autoAdvance = document.getElementById('autoAdvance')?.checked;
+        if (autoAdvance) {
+            const nextInterval = intervalsList[timerState.currentInterval];
+            const cycleInfo = ` (Ciclo ${timerState.currentCycle + 1}/${timerState.totalCycles})`;
+
+            showNotification('⏱️ Siguiente Intervalo',
+                `${nextInterval.name} - ${Math.floor(nextInterval.duration / 60)}:${(nextInterval.duration % 60).toString().padStart(2, '0')}${cycleInfo}`);
+
+            setTimeout(() => {
+                if (timerState.intervalMode) {
+                    startTimerWithDuration(nextInterval.duration, nextInterval.name);
+                    updateIntervalStatus(`${nextInterval.name}${cycleInfo}`);
+                }
+            }, 1000);
+            return;
+        }
+    }
+
+    // Timer simple o sin auto-avance
+    const notifyFinal = document.getElementById('notifyFinal')?.checked;
+    if (notifyFinal) {
+        showNotification('🎉 Timer Completado', '¡Tiempo terminado!', true);
+    }
+
+    if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200, 100, 200]);
+    }
+
+    updateTimerDisplay();
+    updateTimerButtons();
+}
+
+// Mostrar notificación del navegador
+function showNotification(title, body, requireInteraction = false) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(title, {
+            body,
+            requireInteraction,
+            tag: 'timer-notification'
+        });
+    }
+}
+
+// Solicitar permisos de notificación
+function requestNotificationPermission() {
+    if ('Notification' in window) {
+        Notification.requestPermission().then(permission => {
+            const btn = document.getElementById('btnRequestNotify');
+            if (permission === 'granted') {
+                btn.textContent = '✓ Notificaciones Permitidas';
+                btn.disabled = true;
+            }
+        });
+    }
+}
+
+// Agregar 1 minuto
+function addOneMinute() {
+    timerState.total += 60;
+    timerState.remaining += 60;
+    updateTimerDisplay();
+}
+
+// Modo intervalos
+let intervalsList = [];
+
+function addInterval() {
+    const name = prompt('Nombre del intervalo (ej: Trabajo, Descanso):');
+    if (!name) return;
+
+    const minutes = prompt('Minutos:', '3');
+    const seconds = prompt('Segundos:', '0');
+
+    if (minutes === null) return;
+
+    const duration = (parseInt(minutes) || 0) * 60 + (parseInt(seconds) || 0);
+
+    if (duration > 0) {
+        intervalsList.push({ name, duration });
+        renderIntervals();
+    }
+}
+
+function renderIntervals() {
+    const container = document.getElementById('intervalsContainer');
+    if (!container) return;
+
+    if (intervalsList.length === 0) {
+        container.innerHTML = '<p style="color: var(--text-sec); text-align: center;">No hay intervalos configurados</p>';
+        return;
+    }
+
+    container.innerHTML = intervalsList.map((interval, index) => {
+        const minutes = Math.floor(interval.duration / 60);
+        const seconds = interval.duration % 60;
+        const timeText = seconds > 0 ? `${minutes}:${seconds.toString().padStart(2, '0')}` : `${minutes} min`;
+
+        return `
+            <div class="interval-item">
+                <div class="interval-info">
+                    <div class="interval-name">${interval.name}</div>
+                    <div class="interval-duration">${timeText}</div>
+                </div>
+                <div class="interval-actions">
+                    <button onclick="removeInterval(${index})">🗑️</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function removeInterval(index) {
+    intervalsList.splice(index, 1);
+    renderIntervals();
+}
+
+function startIntervals() {
+    if (intervalsList.length === 0) {
+        alert('Agrega al menos un intervalo primero');
+        return;
+    }
+
+    const repeatCount = parseInt(document.getElementById('repeatCount')?.value) || 1;
+
+    timerState.intervalMode = true;
+    timerState.intervals = [...intervalsList];
+    timerState.currentInterval = 0;
+    timerState.currentCycle = 0;
+    timerState.totalCycles = repeatCount;
+
+    const firstInterval = intervalsList[0];
+    updateIntervalStatus(`${firstInterval.name} (Ciclo 1/${repeatCount})`);
+    startTimerWithDuration(firstInterval.duration, firstInterval.name);
+
+    showNotification('⏱️ Intervalos Iniciados',
+        `${intervalsList.length} intervalos x ${repeatCount} ciclo(s)`);
+}
+
+function stopIntervals() {
+    if (confirm('¿Detener programa de intervalos?')) {
+        clearInterval(timerState.intervalId);
+        timerState.intervalMode = false;
+        timerState.active = false;
+        timerState.paused = false;
+        timerState.currentInterval = 0;
+        timerState.currentCycle = 0;
+        timerState.remaining = 0;
+        updateTimerDisplay();
+        updateTimerButtons();
+        updateIntervalStatus('Detenido');
+    }
+}
+
+function updateIntervalStatus(text) {
+    const statusEl = document.getElementById('intervalStatus');
+    if (statusEl) {
+        statusEl.textContent = text;
+    }
+}
+
+function startTimerWithDuration(seconds, name) {
+    timerState.remaining = seconds;
+    timerState.total = seconds;
+    timerState.startTime = Date.now();
+    timerState.active = true;
+    timerState.paused = false;
+    timerState.notifiedHalf = false;
+    timerState.notifiedTwoMin = false;
+
+    timerState.intervalId = setInterval(() => {
+        updateTimerTick();
+    }, 100);
+
+    updateTimerButtons();
+    updateTimerDisplay();
+}
+
+// Gestionar presets (simplificado)
+function managePresets() {
+    const action = prompt('¿Agregar nuevo preset?\nEscribe el nombre o cancela:');
+    if (!action) return;
+
+    const minutes = prompt('Minutos:', '20');
+    const seconds = prompt('Segundos:', '0');
+
+    if (minutes === null) return;
+
+    const duration = (parseInt(minutes) || 0) * 60 + (parseInt(seconds) || 0);
+
+    if (duration > 0) {
+        timerPresets.push({ name: action, duration });
+        localStorage.setItem('timer_presets', JSON.stringify(timerPresets));
+        renderPresets();
+    }
+}
+
+// --- MODO EDICIÓN ---
+
+let editMode = false;
+
+function toggleEditMode() {
+    editMode = !editMode;
+    const btn = document.getElementById('editToggleBtn');
+
+    if (editMode) {
+        btn.classList.add('active');
+        btn.innerHTML = '<span class="material-icons-round">check</span> Guardar';
+        alert('Modo Edición Activado\n\nNOTA: Esta es una versión básica.\nPara editar horarios y actividades, necesitarías un sistema más complejo de formularios inline.\n\nEn esta implementación, puedes usar los inputs de configuración manual en el código o localStorage.');
+    } else {
+        btn.classList.remove('active');
+        btn.innerHTML = '<span class="material-icons-round">edit</span> Editar';
+    }
+}
+
+// --- NAVEGACIÓN ENTRE VISTAS ---
+
+function switchView(viewName) {
+    const agenda = document.getElementById('scheduleView');
+    const habits = document.getElementById('habitsView');
+    const stats = document.getElementById('statsView');
+    const timer = document.getElementById('timerView');
+    const btnAgenda = document.getElementById('btnAgenda');
+    const btnHabits = document.getElementById('btnHabits');
+    const btnStats = document.getElementById('btnStats');
+    const btnTimer = document.getElementById('btnTimer');
+
+    // Ocultar todas las vistas
+    agenda.style.display = 'none';
+    habits.style.display = 'none';
+    stats.style.display = 'none';
+    timer.style.display = 'none';
+
+    // Remover active de todos los botones
+    btnAgenda.classList.remove('active');
+    btnHabits.classList.remove('active');
+    btnStats.classList.remove('active');
+    btnTimer.classList.remove('active');
+
+    // Mostrar vista seleccionada
+    if (viewName === 'agenda') {
+        agenda.style.display = 'block';
+        btnAgenda.classList.add('active');
+    } else if (viewName === 'habits') {
+        habits.style.display = 'block';
+        btnHabits.classList.add('active');
+    } else if (viewName === 'stats') {
+        stats.style.display = 'block';
+        btnStats.classList.add('active');
+        renderStats(); // Calcular y mostrar estad�sticas
+    } else if (viewName === 'timer') {
+        timer.style.display = 'block';
+        btnTimer.classList.add('active');
+        loadTimerPresets();
+        renderIntervals();
+    }
+}
+
+// Iniciar
+init();
+
+// Inicializar timer
+loadTimerPresets();
+if ('Notification' in window && Notification.permission === 'default') {
+    const btn = document.getElementById('btnRequestNotify');
+    if (btn) btn.style.display = 'inline-flex';
+}
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(reg => {
+                console.log('Service Worker registrado', reg);
+                // Pre-cachear Google Fonts en background
+                navigator.serviceWorker.ready.then(registration => {
+                    if (registration.active) {
+                        registration.active.postMessage({ type: 'CACHE_FONTS' });
+                    }
+                });
+            })
+            .catch(err => console.log('Error SW:', err));
+    });
+}
